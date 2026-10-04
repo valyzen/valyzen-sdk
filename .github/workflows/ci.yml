@@ -29,10 +29,11 @@ jobs:
           uv run ruff format --check src tests
           uv run pytest -q
           uv build --out-dir ../dist
-      - name: Python wheel works as users install it (pip, --pre, fresh venv)
+      - name: Python wheel works from a fresh venv, pre-release dependencies allowed
+        # --prerelease allow is what `pip install --pre` does too: it caught httpx 1.0.dev.
         run: |
-          python3 -m venv /tmp/cold
-          /tmp/cold/bin/pip install -q --pre dist/*.whl
+          uv venv -q /tmp/cold
+          uv pip install -q --python /tmp/cold/bin/python --prerelease allow dist/*.whl
           /tmp/cold/bin/valyzen --version
           /tmp/cold/bin/valyzen verify --allow-test fixtures/dev-receipt.json
           VALYZEN_API_KEY=vz_pk_test_x /tmp/cold/bin/python -c "import valyzen; valyzen.GatewayClient()"
