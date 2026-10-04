@@ -1,6 +1,8 @@
 # Publishes through trusted publishing (GitHub OIDC): no registry tokens anywhere.
 # PyPI trusts valyzen/valyzen-sdk + release.yml + environment "pypi";
 # npm trusts the same repo + workflow (configured per package on npmjs.com).
+# Both environments accept deployments from main only and need the owner's approval;
+# actions are pinned to commit SHAs; checkout keeps no credentials.
 name: release
 
 on:
@@ -17,29 +19,33 @@ permissions:
 
 jobs:
   pypi:
-    if: inputs.target == 'pypi' || inputs.target == 'both'
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && (inputs.target == 'pypi' || inputs.target == 'both')
     environment: pypi
     permissions:
       id-token: write
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
       - name: Build
         run: |
           cp README.md LICENSE python/
           cd python && uv build --out-dir ../dist
-      - uses: pypa/gh-action-pypi-publish@release/v1
+      - uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # release/v1
 
   npm:
-    if: inputs.target == 'npm' || inputs.target == 'both'
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && (inputs.target == 'npm' || inputs.target == 'both')
     environment: npm
     permissions:
       id-token: write
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 24
           registry-url: https://registry.npmjs.org
