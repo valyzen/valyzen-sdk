@@ -1,0 +1,49 @@
+# Publishes through trusted publishing (GitHub OIDC): no registry tokens anywhere.
+# PyPI trusts valyzen/valyzen-sdk + release.yml + environment "pypi";
+# npm trusts the same repo + workflow (configured per package on npmjs.com).
+name: release
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Which registry to publish to
+        type: choice
+        options: [pypi, npm, both]
+        default: both
+
+permissions:
+  contents: read
+
+jobs:
+  pypi:
+    if: inputs.target == 'pypi' || inputs.target == 'both'
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Build
+        run: |
+          cp README.md LICENSE python/
+          cd python && uv build --out-dir ../dist
+      - uses: pypa/gh-action-pypi-publish@release/v1
+
+  npm:
+    if: inputs.target == 'npm' || inputs.target == 'both'
+    runs-on: ubuntu-latest
+    environment: npm
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      - name: Publish
+        run: |
+          cp README.md LICENSE js/
+          cd js && npm publish --provenance --access public

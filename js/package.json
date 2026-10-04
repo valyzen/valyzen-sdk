@@ -1,0 +1,14 @@
+{
+  "name": "@valyzen/sdk",
+  "version": "0.0.1",
+  "description": "TypeScript/JavaScript client for the Valyzen Negotiation Gateway (name reservation; client coming soon).",
+  "license": "Apache-2.0",
+  "author": "Valyzen <engineering@valyzen.ai>",
+  "homepage": "https://www.valyzen.ai",
+  "repository": { "type": "git", "url": "git+https://github.com/valyzen/valyzen-sdk.git", "directory": "js" },
+  "type": "module",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "files": ["index.js", "index.d.ts", "README.md", "LICENSE"],
+  "publishConfig": { "access": "public" }
+}
