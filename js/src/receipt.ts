@@ -3,8 +3,9 @@
  *
  * `artifact` is a detached Ed25519 JWS (RFC 7797, b64 false) over the RFC 8785
  * canonical bytes of `signed_payload`; `jwks` carries the key by kid. Checks:
- * header · key · signature · signer (a pinned Valyzen key) · terms · chain
- * (with the session log). Act on `ok` and `signedTerms`, never on `status`
+ * header · key · signature · signer (a pinned Valyzen key) · mode (test keys
+ * only with allowTest) · terms · chain (with the session log; needs the signed
+ * chain head). Act on `ok` and `signedTerms`, never on `status`
  * alone: a forger's own key produces a valid signature too.
  */
 import { ARBITER_KEYS, signerOf, type ArbiterKey, type Signer } from './keys.js'
@@ -39,7 +40,7 @@ export interface Receipt extends Json {
 }
 
 export interface Check {
-  id: 'header' | 'key' | 'signature' | 'signer' | 'terms' | 'chain'
+  id: 'header' | 'key' | 'signature' | 'signer' | 'mode' | 'terms' | 'chain'
   ok: boolean
   detail: string
   skipped?: boolean
@@ -62,6 +63,11 @@ export interface VerifyOptions {
   log?: Json[]
   /** Keys to trust instead of Valyzen's pinned arbiter keys. */
   trustedKeys?: ReadonlyMap<string, ArbiterKey>
+  /**
+   * Accept test-mode (sandbox) receipts. Off by default: anyone with a free
+   * test key can make one, so they prove nothing to a third party.
+   */
+  allowTest?: boolean
   subtle?: SubtleCrypto
 }
 
@@ -185,6 +191,16 @@ export async function verifyReceipt(receipt: Receipt, options: VerifyOptions = {
               ? `Signed by ${signer.label} (${signer.mode} key ${kid}).`
               : `Key ${kid} is not a Valyzen arbiter key: the signature proves only that whoever made this receipt signed it.`,
         })
+        if (signer.kind === 'arbiter' && signer.mode === 'test') {
+          const allowed = options.allowTest === true
+          checks.push({
+            id: 'mode',
+            ok: allowed,
+            detail: allowed
+              ? 'Test-mode receipt (sandbox): accepted because allowTest is set.'
+              : 'Test-mode receipt (sandbox): anyone with a free test key can make one, so it is not accepted as proof. Pass { allowTest: true } to accept it.',
+          })
+        }
       }
     }
 
@@ -238,8 +254,13 @@ async function verifyChain(log: Json[], r: Receipt, subtle: SubtleCrypto): Promi
   if (r.chain && r.chain.length !== log.length) {
     return { ok: false, detail: `The receipt names ${r.chain.length} envelopes; the log holds ${log.length}.` }
   }
+  // receipt.chain is not signed; only the signed chain head binds the log to
+  // the arbiter's signature, so without it the chain proves nothing.
   const signedHead = r.signed_payload?.session?.chain_head
-  if (typeof signedHead === 'string' && log.length >= 2 && signedHead !== (await commit(log[log.length - 2], subtle))) {
+  if (typeof signedHead !== 'string') {
+    return { ok: false, detail: 'The receipt has no signed chain head, so the log cannot be tied to the signature.' }
+  }
+  if (log.length < 2 || signedHead !== (await commit(log[log.length - 2], subtle))) {
     return { ok: false, detail: 'The signed chain head is not the hash of the envelope before session.agree.' }
   }
   return { ok: true, detail: `${log.length} envelopes, each linked to its predecessor; the last is the head the receipt names.` }

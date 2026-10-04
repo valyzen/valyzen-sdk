@@ -32,7 +32,7 @@ def test_the_sandbox_lists_the_demo_monitor() -> None:
 def test_the_fair_edge_buyer_reaches_a_verified_agreement_within_the_ceiling() -> None:
     run = run_buyer(GatewayClient(), FairEdgeModel(), sku="DEMO-MONITOR-27", ceiling=Ceiling(44900))
     assert run.state == "agreed" and run.receipt is not None
-    result = verify_receipt(run.receipt)
+    result = verify_receipt(run.receipt, allow_test=True)
     assert result.ok and result.signer.kind == "arbiter"
     assert result.signed_terms["price"]["amount_minor"] <= 44900
 

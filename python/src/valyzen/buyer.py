@@ -307,8 +307,11 @@ def _execute(
                     "error": "a session is already open",
                     **public_view(session),
                 }, session
+            # The item is the caller's choice, never the model's: tool results
+            # carry merchant text, and a prompt injection must not be able to
+            # steer the buyer to a different item under the same ceiling.
             session = client.open_session(
-                str(call.arguments.get("sku") or sku),
+                sku,
                 agent_id=agent_id,
                 max_rounds=max_rounds,
                 inclusions=list(inclusions),

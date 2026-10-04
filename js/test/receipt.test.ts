@@ -27,12 +27,28 @@ type Log = Record<string, unknown>[]
 
 describe('verifyReceipt', () => {
   it('verifies a real dev receipt and names the dev arbiter', async () => {
-    const r = await verifyReceipt(load('dev-receipt.json'))
+    const r = await verifyReceipt(load('dev-receipt.json'), { allowTest: true })
     expect(r.ok).toBe(true)
     expect(r.status).toBe('valid')
     expect(r.signer).toEqual({ kind: 'arbiter', label: 'the Valyzen development arbiter', mode: 'test' })
     expect(r.signedTerms?.price.amount_minor).toBe(41900)
     expect(check(r, 'chain').skipped).toBe(true)
+  })
+
+  it('does not accept a test-mode receipt as proof unless asked to', async () => {
+    const r = await verifyReceipt(load('dev-receipt.json'))
+    expect(check(r, 'signature').ok).toBe(true)
+    expect(check(r, 'mode').ok).toBe(false)
+    expect(r.ok).toBe(false)
+  })
+
+  it('fails the chain when the receipt carries no signed chain head', async () => {
+    const log = await chained(5)
+    const receipt = await withChain(load('dev-receipt.json'), log)
+    delete receipt.signed_payload!.session.chain_head
+    const r = await verifyReceipt(receipt, { log, allowTest: true })
+    expect(check(r, 'chain').ok).toBe(false)
+    expect(check(r, 'chain').detail).toContain('no signed chain head')
   })
 
   it('verifies a session log that links end to end', async () => {
@@ -110,7 +126,9 @@ describe('verifyReceipt', () => {
   })
 
   it('agrees with the Python SDK on the shared fixtures', async () => {
-    const results = await Promise.all(['dev', 'forged', 'forged-kid'].map((f) => verifyReceipt(load(`${f}-receipt.json`))))
+    const results = await Promise.all(
+      ['dev', 'forged', 'forged-kid'].map((f) => verifyReceipt(load(`${f}-receipt.json`), { allowTest: true })),
+    )
     expect(results.map((r) => [r.ok, r.signer.kind])).toEqual([
       [true, 'arbiter'],
       [false, 'unknown'],

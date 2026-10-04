@@ -24,7 +24,8 @@ while not session.finished:
     else:
         session.offer(edge, inclusions=session.table_inclusions)
 
-result = verify_receipt(session.receipt())    # offline, pinned Valyzen keys
+result = verify_receipt(session.receipt(),   # offline, pinned Valyzen keys
+                        allow_test=True)      # sandbox receipts are test mode
 if result.ok:
     print(result.signed_terms)                # act on the signed terms only
 ```

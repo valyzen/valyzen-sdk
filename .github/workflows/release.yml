@@ -56,4 +56,6 @@ jobs:
         run: |
           npm ci --ignore-scripts  # no dependency install scripts, least of all next to an OIDC token
           npm test
-          npm publish --provenance --access public
+          # Pre-releases (x.y.z-alpha.n) go to the "next" tag so `npm i @valyzen/sdk` stays on latest.
+          tag=$(node -p "require('./package.json').version.includes('-') ? 'next' : 'latest'")
+          npm publish --provenance --access public --tag "$tag"
