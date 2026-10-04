@@ -124,6 +124,7 @@ def report(v: Verification, receipt: dict[str, Any], out: Out) -> None:
         "key": "key embedded",
         "signature": "signature",
         "signer": "signed by Valyzen",
+        "mode": "mode",
         "terms": "terms match",
         "chain": "hash chain",
     }
@@ -132,7 +133,8 @@ def report(v: Verification, receipt: dict[str, Any], out: Out) -> None:
         out(f"  {mark} {labels.get(check.id, check.id):<18}{check.detail}")
     out("")
     if v.ok:
-        out(f"Verified offline: signed by {v.signer.label} ({v.signer.mode} key {v.kid}).")
+        test = " TEST MODE: sandbox, not a real purchase." if v.signer.mode == "test" else ""
+        out(f"Verified offline: signed by {v.signer.label} ({v.signer.mode} key {v.kid}).{test}")
     elif receipt.get("state") != "agreed":
         out("No agreement, so nothing was signed.")
     else:
@@ -183,7 +185,7 @@ def cmd_try(args: argparse.Namespace, out: Out) -> int:
         )
     else:
         out(f"Session {session.session_id} ended: {receipt.get('state')}")
-    v = verify_receipt(receipt)
+    v = verify_receipt(receipt, allow_test=True)  # the sandbox only signs test receipts
     report(v, receipt, out)
 
     if args.save:
@@ -210,7 +212,7 @@ def cmd_verify(args: argparse.Namespace, out: Out) -> int:
         out("The log must be a JSON array of envelopes.")
         return 2
     out(f"Receipt for session {receipt.get('session_id')}: {receipt.get('state')}")
-    v = verify_receipt(receipt, log=log)
+    v = verify_receipt(receipt, log=log, allow_test=args.allow_test)
     report(v, receipt, out)
     return 0 if v.ok else 1
 
@@ -234,6 +236,11 @@ def build_parser() -> argparse.ArgumentParser:
     v = sub.add_parser("verify", help="verify a receipt offline")
     v.add_argument("receipt", help="receipt JSON file")
     v.add_argument("--log", help="session log (JSON array of envelopes) to check the hash chain")
+    v.add_argument(
+        "--allow-test",
+        action="store_true",
+        help="accept test-mode (sandbox) receipts; they prove nothing to a third party",
+    )
     return parser
 
 

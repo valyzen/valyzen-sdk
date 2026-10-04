@@ -36,7 +36,7 @@ exchange offers under a neutral arbiter, and verify the signed receipt **offline
      ✓ signature         The signature verifies over the canonical signed payload.
      ✓ signed by Valyzen Signed by the Valyzen arbiter (test key …).
      ✓ terms match       final_terms and session_id match what was signed.
-   Verified offline: signed by the Valyzen arbiter.
+   Verified offline: signed by the Valyzen arbiter (test key …). TEST MODE: sandbox, not a real purchase.
 
    Check it in your browser (the receipt stays in the link, never sent to a server):
    https://www.valyzen.ai/verify#r=v1.…
@@ -53,10 +53,13 @@ bytes of the agreed terms and the session's hash-chain head. Both SDKs check, of
 * the key that signed is **byte-for-byte a pinned Valyzen arbiter key** (`valyzen/keys.py`,
   `js/src/keys.ts`). A valid signature alone proves nothing: anyone can sign a receipt with
   their own key under any key id;
+* the key is a **live** key. Sandbox receipts are signed with test keys that anyone can use,
+  so they only count when you ask for them (`allow_test=True`, `{ allowTest: true }`,
+  `valyzen verify --allow-test`);
 * the receipt's `final_terms` and `session_id` are what was signed. Act on `signed_terms`
   (`signedTerms`), never on unsigned fields;
 * with the session log, every envelope links to the one before it (`prev_hash`) and the
-  signed chain head is the envelope before `session.agree`.
+  signed chain head (required) is the envelope before `session.agree`.
 
 Only `ok` / `result.ok` means all of that held. `status == "valid"` is the signature alone.
 

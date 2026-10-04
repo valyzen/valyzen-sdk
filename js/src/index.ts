@@ -9,14 +9,14 @@
  *   const session = await client.openSession('DEMO-MONITOR-27', { agentId: 'my-buyer' })
  *   await session.offer(41500, { inclusions: session.tableInclusions })
  *   const receipt = await session.receipt()
- *   const result = await verifyReceipt(receipt)  // offline; pinned Valyzen keys
+ *   const result = await verifyReceipt(receipt)  // offline; pinned live Valyzen keys
  *   if (result.ok) actOn(result.signedTerms)
  */
 
 export { ARBITER_KEYS, signerOf, type ArbiterKey, type Signer } from './keys.js'
 export { encodeReceipt, siteFor, verifyLink } from './links.js'
 export { canonicalize, commit, verifyReceipt, type Check, type VerifyResult, type VerifyOptions } from './receipt.js'
-export const VERSION = '0.1.0'
+export const VERSION = '0.1.0-alpha.1'
 
 const DEFAULT_BASE_URL = 'https://api.valyzen.ai'
 

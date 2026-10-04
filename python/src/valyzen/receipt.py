@@ -8,10 +8,11 @@ A receipt is self-contained: ``artifact`` is a detached Ed25519 JWS (RFC 7797,
 * ``key``       an Ed25519 key with that kid is embedded in the receipt
 * ``signature`` it verifies over the canonical signed payload
 * ``signer``    that embedded key is a pinned Valyzen arbiter key (:mod:`valyzen.keys`)
+* ``mode``      a test-mode (sandbox) key only counts with ``allow_test=True``
 * ``terms``     ``final_terms`` and ``session_id`` equal what was signed
 * ``chain``     with the session log: every envelope links to the one before
                 (``prev_hash``), the last is the head the receipt names, and the
-                signed chain head is the envelope before ``session.agree``
+                signed chain head (required) is the envelope before ``session.agree``
 
 Only signed fields are evidence: ``final_terms`` is read from
 ``signed_payload``. Verdicts, invariants and the rest are the gateway's report.
@@ -96,8 +97,13 @@ def verify_receipt(
     *,
     log: Sequence[Mapping[str, Any]] | None = None,
     trusted_keys: Mapping[str, ArbiterKey] = ARBITER_KEYS,
+    allow_test: bool = False,
 ) -> Verification:
     """Verify a receipt (and its session log, if given) offline.
+
+    Test-mode receipts (sandbox, free test keys) are never ``ok`` unless
+    ``allow_test=True``: anyone can mint one, so they prove nothing to a third
+    party.
 
     Every check that can run does, so a caller can show all of them; a check
     that cannot run says why and is marked ``skipped``.
@@ -207,6 +213,18 @@ def verify_receipt(
                         "proves only that whoever made this receipt signed it.",
                     )
                 )
+                if pinned and signer.mode == "test":
+                    checks.append(
+                        Check(
+                            "mode",
+                            allow_test,
+                            "Test-mode receipt (sandbox): accepted because allow_test is set."
+                            if allow_test
+                            else "Test-mode receipt (sandbox): anyone with a free test key can "
+                            "make one, so it is not accepted as proof. Pass allow_test=True "
+                            "to accept it.",
+                        )
+                    )
 
         session = payload.get("session") if isinstance(payload.get("session"), dict) else {}
         signed = payload.get("final_terms")
@@ -272,9 +290,16 @@ def _verify_chain(
             False,
             f"The receipt names {chain.get('length')} envelopes; the log holds {len(log)}.",
         )
+    # receipt.chain is not signed; only the signed chain head binds the log to
+    # the arbiter's signature, so without it the chain proves nothing.
     session = payload.get("session") if payload else None
     signed_head = session.get("chain_head") if isinstance(session, Mapping) else None
-    if isinstance(signed_head, str) and before_agree is not None and signed_head != before_agree:
+    if not isinstance(signed_head, str):
+        return (
+            False,
+            "The receipt has no signed chain head, so the log cannot be tied to the signature.",
+        )
+    if before_agree is None or signed_head != before_agree:
         return False, "The signed chain head is not the hash of the envelope before session.agree."
     return (
         True,

@@ -6,7 +6,7 @@
     session = client.open_session("DEMO-MONITOR-27", agent_id="my-buyer")
     session.offer(41500, inclusions=session.table_inclusions)
     receipt = session.receipt()
-    result = verify_receipt(receipt)            # offline; pinned Valyzen keys
+    result = verify_receipt(receipt)            # offline; pinned live Valyzen keys
     if result.ok:
         act_on(result.signed_terms)
 

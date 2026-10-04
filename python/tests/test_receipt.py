@@ -46,7 +46,7 @@ def check(result: Any, check_id: str) -> Any:
 
 
 def test_a_real_dev_receipt_verifies_and_names_the_dev_arbiter() -> None:
-    result = verify_receipt(load("dev-receipt.json"))
+    result = verify_receipt(load("dev-receipt.json"), allow_test=True)
     assert result.ok and result.status == "valid"
     assert result.signer.kind == "arbiter" and result.signer.mode == "test"
     assert result.kid == "ed25519-2f3286feb69fb953"
@@ -60,7 +60,7 @@ def test_a_key_pinned_by_the_caller_is_trusted() -> None:
     receipt = sign(load("dev-receipt.json"), key, "ed25519-mine")
     x = receipt["jwks"]["keys"][0]["x"]
     trusted = {"ed25519-mine": ArbiterKey(x, "my staging arbiter", "test")}
-    assert verify_receipt(receipt, trusted_keys=trusted).ok
+    assert verify_receipt(receipt, trusted_keys=trusted, allow_test=True).ok
     assert not verify_receipt(receipt).ok  # not a Valyzen key by default
 
 
@@ -104,7 +104,7 @@ def test_canonicalisation_ignores_key_order_and_whitespace() -> None:
     receipt = load("dev-receipt.json")
     terms = receipt["final_terms"]
     receipt["final_terms"] = json.loads(json.dumps(dict(reversed(list(terms.items())))))
-    assert verify_receipt(receipt).ok
+    assert verify_receipt(receipt, allow_test=True).ok
 
 
 # --- negative -------------------------------------------------------------
@@ -210,7 +210,21 @@ def test_verification_never_touches_the_network(monkeypatch: pytest.MonkeyPatch)
 
     monkeypatch.setattr(socket, "create_connection", refuse)
     monkeypatch.setattr(socket.socket, "connect", refuse)
-    assert verify_receipt(load("dev-receipt.json")).ok
+    assert verify_receipt(load("dev-receipt.json"), allow_test=True).ok
+
+
+def test_a_test_mode_receipt_is_not_proof_unless_asked() -> None:
+    result = verify_receipt(load("dev-receipt.json"))
+    assert check(result, "signature").ok and check(result, "signer").ok
+    assert not check(result, "mode").ok and not result.ok
+
+
+def test_a_chain_without_a_signed_head_proves_nothing() -> None:
+    log = chained(5)
+    receipt = with_chain(load("dev-receipt.json"), log)
+    del receipt["signed_payload"]["session"]["chain_head"]
+    chain = check(verify_receipt(receipt, log=log, allow_test=True), "chain")
+    assert not chain.ok and "no signed chain head" in chain.detail
 
 
 def test_the_pinned_list_cannot_be_modified_at_runtime() -> None:

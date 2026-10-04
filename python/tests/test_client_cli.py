@@ -130,7 +130,9 @@ def test_a_bad_ceiling_is_rejected_by_the_parser(bad: str) -> None:
 
 def test_verify_command_passes_a_real_receipt_and_fails_a_forged_one() -> None:
     code, out = run_cli(["verify", str(FIXTURES / "dev-receipt.json")])
-    assert code == 0 and "Verified offline" in out
+    assert code == 1 and "Test-mode receipt" in out  # a sandbox receipt is not proof…
+    code, out = run_cli(["verify", "--allow-test", str(FIXTURES / "dev-receipt.json")])
+    assert code == 0 and "Verified offline" in out and "TEST MODE" in out  # …unless asked
     code, out = run_cli(["verify", str(FIXTURES / "forged-receipt.json")])
     assert code == 1 and "NOT verified" in out and "not a Valyzen arbiter key" in out
 

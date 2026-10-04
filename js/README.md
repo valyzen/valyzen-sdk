@@ -22,12 +22,12 @@ while (!session.finished) {
 }
 
 const receipt = await session.receipt()
-const result = await verifyReceipt(receipt)   // offline, pinned Valyzen keys
+const result = await verifyReceipt(receipt, { allowTest: true }) // offline; sandbox receipts are test mode
 if (result.ok) console.log(result.signedTerms, await verifyLink(receipt))
 ```
 
 `result.ok` is true only when the signature verifies, the signing key is a pinned Valyzen
-arbiter key, and the receipt's terms are the signed ones. `result.status === 'valid'` is
+arbiter key (a live one, unless you pass `allowTest`), and the receipt's terms are the signed ones. `result.status === 'valid'` is
 the signature alone: anyone can sign a receipt with their own key.
 
 In browsers, pass the key from your server, never ship a secret key (`vz_sk_…`) to a page.
