@@ -2,7 +2,3 @@ dist/
 node_modules/
 __pycache__/
 .venv/
-python/README.md
-python/LICENSE
-js/README.md
-js/LICENSE

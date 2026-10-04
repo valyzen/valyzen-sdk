@@ -1,4 +1,4 @@
-# Builds both packages on every push/PR with the same pinned actions as release.yml,
+# Lints, tests and builds both packages on every push/PR with the same pinned actions as release.yml,
 # so an action bump is proven here before a release needs approval. Never publishes.
 name: ci
 
@@ -21,11 +21,19 @@ jobs:
         with:
           node-version: 24
           registry-url: https://registry.npmjs.org
-      - name: Python package builds
+      - name: Python lint, tests, build
+        working-directory: python
         run: |
-          cp README.md LICENSE python/
-          cd python && uv build --out-dir ../dist
-      - name: npm package packs
+          uv sync --locked
+          uv run ruff check src tests
+          uv run ruff format --check src tests
+          uv run pytest -q
+          uv build --out-dir ../dist
+      - name: TypeScript typecheck, tests, build, pack
+        working-directory: js
         run: |
-          cp README.md LICENSE js/
-          cd js && npm pack --dry-run
+          npm ci --ignore-scripts  # no dependency install scripts, least of all next to an OIDC token
+          npm run typecheck
+          npm test
+          npm run build
+          npm pack --dry-run

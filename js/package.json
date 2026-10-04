@@ -1,14 +1,54 @@
 {
   "name": "@valyzen/sdk",
-  "version": "0.0.1",
-  "description": "TypeScript/JavaScript client for the Valyzen Negotiation Gateway (name reservation; client coming soon).",
+  "version": "0.1.0",
+  "description": "TypeScript/JavaScript client for the Valyzen Negotiation Gateway: negotiate, then verify the signed receipt offline. Zero dependencies.",
   "license": "Apache-2.0",
   "author": "Valyzen <engineering@valyzen.ai>",
   "homepage": "https://www.valyzen.ai",
-  "repository": { "type": "git", "url": "git+https://github.com/valyzen/valyzen-sdk.git", "directory": "js" },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/valyzen/valyzen-sdk.git",
+    "directory": "js"
+  },
   "type": "module",
-  "main": "index.js",
-  "types": "index.d.ts",
-  "files": ["index.js", "index.d.ts", "README.md", "LICENSE"],
-  "publishConfig": { "access": "public" }
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "sideEffects": false,
+  "keywords": [
+    "valyzen",
+    "negotiation",
+    "arbiter",
+    "receipt",
+    "ed25519",
+    "mcp",
+    "agents"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "prepublishOnly": "npm run build"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0",
+    "@types/node": "^22.0.0"
+  }
 }
