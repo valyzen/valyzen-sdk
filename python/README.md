@@ -33,5 +33,6 @@ if result.ok:
 `valyzen.buyer` adds a guard that keeps a private ceiling in your process
 (`Ceiling`) and an LLM buyer over any OpenAI-compatible chat API (`run_buyer`,
 `OpenAICompatibleModel`); `FairEdgeModel` is the same buyer without a model.
+`examples/grok_buyer.py` runs the LLM buyer on xAI Grok (or any OpenAI-compatible API).
 
 Source, docs and the TypeScript SDK: https://github.com/valyzen/valyzen-sdk · Apache-2.0
