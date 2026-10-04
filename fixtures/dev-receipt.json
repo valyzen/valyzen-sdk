@@ -1,0 +1,230 @@
+{
+  "oanp_version": "0.1",
+  "library_version": "0.2.0",
+  "session_id": "01M42N9KCCR8TAGDXTFR3Q8TE8",
+  "state": "agreed",
+  "enforcement": "arbitrated",
+  "fairness_profile": "default/v0.1",
+  "rules": {
+    "max_rounds": 5,
+    "round_timeout_seconds": 900,
+    "fairness_profile": "default/v0.1",
+    "audit_retention_days": 90,
+    "fair_band": "0.05"
+  },
+  "attested": {
+    "list_price": {
+      "amount_minor": 44900,
+      "currency": "USD"
+    },
+    "inclusion_values": {
+      "warranty": {
+        "amount_minor": 3900,
+        "currency": "USD"
+      },
+      "cable": {
+        "amount_minor": 1500,
+        "currency": "USD"
+      }
+    },
+    "t_target": {
+      "amount_minor": 41900,
+      "currency": "USD"
+    },
+    "source": "merchant catalogue: tenant ten_sandbox, sku DEMO-MONITOR-27; reference price declared by the merchant",
+    "captured_at": "2026-10-04T05:13:26Z"
+  },
+  "parties": {
+    "buyer": {
+      "agent_id": "site-fixture",
+      "commitment": "sha256:62908c3ea6c1d7dfcfdbaa6b6fa8aec233682a839bb1b5bb1f2a36a947f749db",
+      "declared": {
+        "max_rounds": 5,
+        "currency": "USD",
+        "inclusions": [],
+        "utilities": {},
+        "non_price_preferences": []
+      }
+    },
+    "merchant": {
+      "agent_id": "ten_sandbox.merchant",
+      "commitment": "sha256:f03cf379879f8a57557069c1362888801a2a94566bb0aecf0a85cf8a2b993a49",
+      "declared": {
+        "max_rounds": 5,
+        "currency": "USD",
+        "inclusions": [
+          {
+            "kind": "warranty",
+            "value": "included"
+          },
+          {
+            "kind": "cable",
+            "value": "included"
+          }
+        ],
+        "utilities": {
+          "warranty": "0.3",
+          "cable": "0.3"
+        },
+        "non_price_preferences": []
+      }
+    }
+  },
+  "arbiter": {
+    "agent_id": "arbiter-dev.valyzen.ai",
+    "relationship": "affiliated"
+  },
+  "rounds_completed": 1,
+  "verdicts": [
+    {
+      "round": 1,
+      "verdict": "fair",
+      "fairness_score": "1.0000",
+      "w_minor": 0,
+      "t_minor": 41900,
+      "t_target_minor": 41900,
+      "currency": "USD",
+      "price_minor": 41900,
+      "unattested_inclusions": [],
+      "outcome": "pending"
+    },
+    {
+      "round": 1,
+      "verdict": "fair",
+      "fairness_score": "1.0000",
+      "w_minor": 0,
+      "t_minor": 41900,
+      "t_target_minor": 41900,
+      "currency": "USD",
+      "price_minor": 41900,
+      "unattested_inclusions": [],
+      "outcome": "accepted"
+    }
+  ],
+  "close": null,
+  "final_terms": {
+    "price": {
+      "amount_minor": 41900,
+      "currency": "USD"
+    },
+    "inclusions": [
+      {
+        "kind": "warranty",
+        "value": "included"
+      },
+      {
+        "kind": "cable",
+        "value": "included"
+      }
+    ]
+  },
+  "no_deal_welfare": {
+    "currency": "USD",
+    "agreed_price_minor": 41900,
+    "bilateral_reference_price_minor": null,
+    "buyer_no_purchase": false,
+    "merchant_revenue_foregone_minor": null
+  },
+  "invariants": {
+    "I1": {
+      "name": "Bounded rounds",
+      "status": "enforced",
+      "detail": "bounded at 5 rounds; 1 used"
+    },
+    "I2": {
+      "name": "Symmetric information to the arbiter",
+      "status": "held",
+      "detail": "both parties declared their constraints before any offer was scored"
+    },
+    "I3": {
+      "name": "Constraint immutability within a session",
+      "status": "verified",
+      "detail": "every revealed constraint matched its commitment"
+    },
+    "I4": {
+      "name": "Monotonic concession",
+      "status": "enforced",
+      "detail": "every offer was checked against that party's own previous offer"
+    },
+    "I5": {
+      "name": "Fairness-score verdict per round",
+      "status": "enforced",
+      "detail": "2 evaluations, 0 rejected"
+    },
+    "I6": {
+      "name": "Signed final artifact",
+      "status": "signed",
+      "detail": "Ed25519 detached JWS over RFC 8785 canonical bytes"
+    },
+    "I7": {
+      "name": "Auditable history",
+      "status": "chained",
+      "detail": "7 envelopes, each linked to its predecessor"
+    }
+  },
+  "reveals": {
+    "buyer": true,
+    "merchant": true
+  },
+  "chain": {
+    "head": "sha256:6c77e2c67c46ae28c8c0eacb819df89f3e92ca90c52122d544c6922c98cae6a9",
+    "length": 7,
+    "retention_days": 90
+  },
+  "artifact": {
+    "protected": "eyJhbGciOiJFZERTQSIsImI2NCI6ZmFsc2UsImNyaXQiOlsiYjY0Il0sImtpZCI6ImVkMjU1MTktMmYzMjg2ZmViNjlmYjk1MyIsInR5cCI6Im9hbnAtYWdyZWVtZW50K2p3cyJ9",
+    "signature": "qw_yhFMGeCevkIA3cpyIXLWKv0NpZyaVFETafHapTlR_E1KdRRd_TDFNsosodJvOb1-1dfWR5QKDsQF5D2_yBA"
+  },
+  "signed_payload": {
+    "final_terms": {
+      "price": {
+        "amount_minor": 41900,
+        "currency": "USD"
+      },
+      "inclusions": [
+        {
+          "kind": "warranty",
+          "value": "included"
+        },
+        {
+          "kind": "cable",
+          "value": "included"
+        }
+      ]
+    },
+    "session": {
+      "session_id": "01M42N9KCCR8TAGDXTFR3Q8TE8",
+      "oanp_version": "0.1",
+      "arbiter_agent_id": "arbiter-dev.valyzen.ai",
+      "fairness_profile": "default/v0.1",
+      "rounds_completed": 1,
+      "chain_head": "sha256:acb4235b461c7bcdbe2fbe77bd5a3ecb258ec4a72b8dd6de4bd847087ddd7311",
+      "buyer_commitment": "sha256:62908c3ea6c1d7dfcfdbaa6b6fa8aec233682a839bb1b5bb1f2a36a947f749db",
+      "merchant_commitment": "sha256:f03cf379879f8a57557069c1362888801a2a94566bb0aecf0a85cf8a2b993a49",
+      "attested_source": "merchant catalogue: tenant ten_sandbox, sku DEMO-MONITOR-27; reference price declared by the merchant"
+    }
+  },
+  "jwks": {
+    "keys": [
+      {
+        "x": "Er_WT_nxhGzA8212gQp8dCBwvQRC4TmT1s8n185Znyg",
+        "kty": "OKP",
+        "crv": "Ed25519",
+        "kid": "ed25519-2f3286feb69fb953",
+        "alg": "EdDSA",
+        "use": "sig"
+      }
+    ]
+  },
+  "signature": {
+    "status": "valid",
+    "reason": "signature verified"
+  },
+  "mode": "test",
+  "hosted": {
+    "merchant_runtime": "valyzen-hosted-policy",
+    "buyer_commitment_by": "gateway",
+    "tenant_id": "ten_sandbox",
+    "settlement": null
+  }
+}

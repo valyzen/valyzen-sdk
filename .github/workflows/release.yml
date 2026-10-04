@@ -29,10 +29,12 @@ jobs:
         with:
           persist-credentials: false
       - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
-      - name: Build
+      - name: Test and build
+        working-directory: python
         run: |
-          cp README.md LICENSE python/
-          cd python && uv build --out-dir ../dist
+          uv sync --locked
+          uv run pytest -q
+          uv build --out-dir ../dist
       - uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # release/v1
 
   npm:
@@ -49,7 +51,9 @@ jobs:
         with:
           node-version: 24
           registry-url: https://registry.npmjs.org
-      - name: Publish
+      - name: Test, build and publish
+        working-directory: js
         run: |
-          cp README.md LICENSE js/
-          cd js && npm publish --provenance --access public
+          npm ci --ignore-scripts  # no dependency install scripts, least of all next to an OIDC token
+          npm test
+          npm publish --provenance --access public
