@@ -14,7 +14,7 @@ classifiers = [
   "Topic :: Office/Business :: Financial",
 ]
 dependencies = [
-  "httpx>=0.27",
+  "httpx>=0.27,<1",  # 1.0 pre-releases change the API; `pip install --pre` would pull them
   "cryptography>=43",
   "rfc8785>=0.1.4",
 ]
