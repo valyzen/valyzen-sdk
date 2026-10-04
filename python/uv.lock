@@ -450,7 +450,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "cryptography", specifier = ">=43" },
-    { name = "httpx", specifier = ">=0.27" },
+    { name = "httpx", specifier = ">=0.27,<1" },
     { name = "rfc8785", specifier = ">=0.1.4" },
 ]
 
