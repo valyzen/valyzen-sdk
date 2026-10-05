@@ -35,6 +35,7 @@ __all__ = [
     "OpenAICompatibleModel",
     "ToolCall",
     "bid_minor",
+    "guard_move",
     "run_buyer",
 ]
 
@@ -191,6 +192,31 @@ def bid_minor(session: Session, ceiling: Ceiling) -> int:
     if edge is None:
         return ceiling.amount_minor
     return min(edge, ceiling.amount_minor)
+
+
+def guard_move(
+    session: Session, ceiling: Ceiling, price_minor: int | None = None
+) -> tuple[str, int]:
+    """The guard's move for a buyer that would offer ``price_minor``.
+
+    - A standing merchant offer at or below the bid the guard would make (the
+      fair edge, never above the ceiling) is ACCEPTED, whatever the model
+      proposed: the ask is already as good as the guard's own bid.
+    - Otherwise the guard offers ``min(price_minor, bid, merchant's ask)``:
+      never above the ceiling and never above what the merchant is asking, so
+      clamping can never turn into a counter dearer than the ask. In a
+      corrective round (nothing of the merchant's on the table) the ask is
+      the merchant's latest fair offer.
+    """
+    bid = bid_minor(session, ceiling)
+    standing = session.merchant_offer_minor
+    if standing is not None and standing <= bid:
+        return "accept", standing
+    price = bid if price_minor is None else min(price_minor, bid)
+    ask = session.merchant_ask_minor
+    if ask is not None:
+        price = min(price, ask)
+    return "offer", price
 
 
 def run_buyer(
@@ -355,20 +381,17 @@ def _execute(
             run.moves.append("accept")
             return public_view(session), session
         if call.name == "offer":
-            price = int(call.arguments.get("price_minor", 0))
-            bid = bid_minor(session, ceiling)
-            standing = session.merchant_offer_minor
-            if standing is not None and standing <= bid and price >= standing:
-                session.accept()  # offering more than an acceptable price is silly
+            move, price = guard_move(session, ceiling, int(call.arguments.get("price_minor", 0)))
+            if move == "accept":
+                session.accept()
                 run.moves.append("accept")
                 return public_view(session), session
-            clamped = min(price, bid)
             session.offer(
-                clamped,
-                inclusions=session.table_inclusions or None,
+                price,
+                inclusions=session.table_inclusions or session.merchant_ask_inclusions or None,
                 justification=str(call.arguments.get("justification") or "")[:2000] or None,
             )
-            run.moves.append(f"offer:{clamped}")
+            run.moves.append(f"offer:{price}")
             return public_view(session), session
         if call.name == "reject":
             session.reject(str(call.arguments.get("reason") or "buyer withdrew"))

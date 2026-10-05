@@ -18,7 +18,7 @@ from pathlib import Path
 from typing import Any
 
 from valyzen._version import __version__
-from valyzen.buyer import Ceiling, bid_minor
+from valyzen.buyer import Ceiling, guard_move
 from valyzen.client import (
     BASE_URL_ENV,
     DEFAULT_BASE_URL,
@@ -105,13 +105,13 @@ def negotiate(session: Session, ceiling: Ceiling, out: Out, currency: str) -> No
             session.refresh()
             show()
             continue
-        bid = bid_minor(session, ceiling)
-        standing = session.merchant_offer_minor
-        if standing is not None and standing <= bid:
-            out(f"  {'you accept':<16}{money(standing, currency)}")
+        move, price = guard_move(session, ceiling)
+        if move == "accept":
+            out(f"  {'you accept':<16}{money(price, currency)}")
             session.accept()
         else:
-            session.offer(bid, inclusions=session.table_inclusions or None)
+            inclusions = session.table_inclusions or session.merchant_ask_inclusions
+            session.offer(price, inclusions=inclusions or None)
         show()
     if not session.finished:
         session.reject("valyzen try: move limit reached")
