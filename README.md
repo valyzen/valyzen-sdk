@@ -77,6 +77,8 @@ gateway holds the buyer's commitment for you: `buyer_commitment_by: gateway` on 
 | `js/` | npm `@valyzen/sdk`: zero-dependency client and offline verifier |
 | `fixtures/` | real and forged receipts both test suites check |
 
+Status: 0.1.0, against the production gateway (api.valyzen.ai) and its sandbox store.
+
 Contract tests against a live sandbox are opt-in: `VALYZEN_API_KEY=… uv run pytest -m contract`.
 Releases publish from `.github/workflows/release.yml` through trusted publishing (GitHub OIDC),
 with an owner's approval per registry. No registry tokens exist in this repository.
