@@ -261,6 +261,10 @@ class Session:
         self._band: Decimal | None = None
         self._w: dict[tuple[str, frozenset[str]], int] = {}
         self._last_offer: tuple[str, frozenset[str]] | None = None
+        self._last_offer_terms: tuple[int, list[str]] | None = None
+        # The merchant's latest offer the arbiter scored fair: its ask, which
+        # stays known in a corrective round when nothing is on the table.
+        self._merchant_ask: tuple[int, list[str]] | None = None
         self.view = view
         self._learn(view)
 
@@ -291,6 +295,22 @@ class Session:
         return int(on_table["terms"]["price"]["amount_minor"])
 
     @property
+    def merchant_ask_minor(self) -> int | None:
+        """The merchant's current ask: the standing merchant price, else its
+        latest offer the arbiter scored fair (e.g. during a corrective round,
+        when the buyer's rejected offer leaves nothing of the merchant's on
+        the table)."""
+        standing = self.merchant_offer_minor
+        if standing is not None:
+            return standing
+        return self._merchant_ask[0] if self._merchant_ask else None
+
+    @property
+    def merchant_ask_inclusions(self) -> list[str]:
+        """The inclusions of :attr:`merchant_ask_minor`'s offer."""
+        return list(self._merchant_ask[1]) if self._merchant_ask else []
+
+    @property
     def suggested_price_minor(self) -> int | None:
         return suggested_price(self.view)
 
@@ -319,7 +339,8 @@ class Session:
             return None
         low = Decimal(self._t_target) / (Decimal(1) + self._band)
         edge = int(low.quantize(Decimal(1), rounding=ROUND_CEILING))
-        kinds = frozenset(self.table_inclusions)
+        # In a corrective round nothing is on the table: price the ask's terms.
+        kinds = frozenset(self.table_inclusions or self.merchant_ask_inclusions)
         w = self._w.get(("buyer", kinds), self._w.get(("merchant", kinds), 0))
         return edge + w
 
@@ -343,12 +364,17 @@ class Session:
             self._t_target = int(payload["attested"]["t_target"]["amount_minor"])
         elif kind in ("offer.propose", "offer.counter"):
             items = payload["terms"].get("inclusions") or []
-            self._last_offer = (
-                str(entry["sender"]["role"]),
-                frozenset(str(i["kind"]) for i in items),
-            )
+            kinds = [str(i["kind"]) for i in items]
+            self._last_offer = (str(entry["sender"]["role"]), frozenset(kinds))
+            self._last_offer_terms = (int(payload["terms"]["price"]["amount_minor"]), kinds)
         elif kind == "arbitration.evaluate" and self._last_offer is not None:
             self._w[self._last_offer] = int(payload["w_minor"])
+            if (
+                self._last_offer[0] == "merchant"
+                and payload.get("verdict") == "fair"
+                and self._last_offer_terms is not None
+            ):
+                self._merchant_ask = self._last_offer_terms
 
     # -- moves -------------------------------------------------------------
 
