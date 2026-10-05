@@ -16,7 +16,7 @@
 export { ARBITER_KEYS, signerOf, type ArbiterKey, type Signer } from './keys.js'
 export { encodeReceipt, siteFor, verifyLink } from './links.js'
 export { canonicalize, commit, verifyReceipt, type Check, type VerifyResult, type VerifyOptions } from './receipt.js'
-export const VERSION = '0.1.0-alpha.1'
+export const VERSION = '0.1.0'
 
 const DEFAULT_BASE_URL = 'https://api.valyzen.ai'
 

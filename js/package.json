@@ -1,6 +1,6 @@
 {
   "name": "@valyzen/sdk",
-  "version": "0.1.0-alpha.1",
+  "version": "0.1.0",
   "description": "TypeScript/JavaScript client for the Valyzen Negotiation Gateway: negotiate, then verify the signed receipt offline. Zero dependencies.",
   "license": "Apache-2.0",
   "author": "Valyzen <engineering@valyzen.ai>",
